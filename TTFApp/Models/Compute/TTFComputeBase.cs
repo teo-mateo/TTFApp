@@ -7,7 +7,7 @@ using TTFApp.Models.Decide;
 
 namespace TTFApp.Models.Compute
 {
-    public class TTFComputeBase : ITTFCompute
+    public abstract class TTFComputeBase : ITTFCompute
     {
         ABCDecision _abcDecision;
         protected ABCDecision AbcDecision { get; }

@@ -16,6 +16,7 @@ namespace TTFApp.Tests.Decide
             ABCRule r = new ABCRule(Models.SRT.R, (a, b, c) => !a && !b && !c);
             Assert.AreEqual(true, r.Fits(false, false, false));
 
+            //with expressions, we can do more!
             r = new ABCRule(Models.SRT.R, (a, b, c) => a || b || c);
             Assert.AreEqual(false, r.Fits(false, false, false));
 

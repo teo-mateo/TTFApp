@@ -14,6 +14,34 @@ namespace TTFApp.Controllers
     [RoutePrefix("api")]
     public class TTFController : ApiController
     {
+        private IEnumerable<Type> GetTTFImplementations()
+        {
+            return Assembly.GetExecutingAssembly().GetTypes()
+                    .Where(x => typeof(ITTFCompute).IsAssignableFrom(x) && !x.IsAbstract);
+        }
+
+        [Route("ttf")]
+        [HttpGet]
+        public IHttpActionResult Get()
+        {
+            var urls = GetTTFImplementations()
+                    .Select(x => this.Request.RequestUri.AbsoluteUri +  "/" + x.Name);
+
+            return Ok(new
+            {
+                Message = "Please use one of the following URLs, action: POST",
+                URLs = urls, 
+                SamplePayload = new TTFInput(true, true, true, 101, 102, 103)
+            });
+        }
+
+        [Route("ttf/{type}")]
+        [HttpGet]
+        public IHttpActionResult Get(string type)
+        {
+            return BadRequest("Use the POST, Luke");
+        }
+
         [Route("ttf/{type}")]
         [HttpPost]
         public IHttpActionResult Post([FromBody]TTFInput input, string type)
@@ -23,14 +51,18 @@ namespace TTFApp.Controllers
                 if (input == null)
                     return BadRequest("Missing TTF input");
 
-                var t = Assembly.GetExecutingAssembly().GetTypes()
-                    .FirstOrDefault(x =>
-                        typeof(ITTFCompute).IsAssignableFrom(x) &&
-                        x.Name.Equals(type, StringComparison.CurrentCultureIgnoreCase)
-                        );
+                var impl = GetTTFImplementations();
+
+                var t = impl
+                    .FirstOrDefault(x => x.Name.Equals(type, StringComparison.CurrentCultureIgnoreCase));
+
                 if (t == null)
                 {
-                    return BadRequest("Could not find compute engine for " + type);
+                    string msg = String.Format("Could not find compute engine for '{0}'. You can use: {1}",
+                        type,
+                        impl.Select(x => x.Name).Aggregate((p, q) => p + "/" + q));
+
+                    return BadRequest(msg);
                 }
                 else
                 {
